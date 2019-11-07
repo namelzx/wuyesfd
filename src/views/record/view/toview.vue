@@ -32,7 +32,8 @@
         <div>本次读数</div>
       </div>
       <div class="header-conetn" v-for="(item,index) in list" :key="index">
-        <div style="width: 128%">{{ item.name}}</div>
+        <div style="width: 128%">
+          {{ item.name}}</div>
 
         <div style="width:128%">
           <template v-if="item.category_id===30">{{item.desc}}</template>
@@ -54,7 +55,7 @@
         <div class="content-info">
           <!-- <div>收费渠道: {{pricetype|fsfileer}}</div> -->
           <div>收费渠道:服务中心收取</div>
-          <div>支付方式:{{pricetype}}</div>
+          <div>支付方式:{{pricetype|fsfileer}}</div>
           <div style="width:40%">合计金额(大写):{{sum|Arabia_To_SimplifiedChinese}}</div>
           <div>应收¥:{{sum|numFixed}}</div>
           <div>实收¥:{{shsum|numFixed}}</div>
@@ -133,19 +134,20 @@ export default {
     timeSubstring(row) {
       var Year = row.month.substring(0, 4);
       var Month = row.month.substring(5, 7);
-      console.log(Month);
-      // // return 1;
-      //   Nowdate.getFullYear() +
-      // "." +
-      // parseInt(Nowdate.getMonth() + 1) +
-      // "." +
-      // "1";
+      var to=0;
       if (row.type === 2) {
-        var m = parseInt(Month) + row.np;
-        if (m>12) {
-          Year =  parseInt(Year) + 1,
-          m = 1
+        if (row.np>12) {//得到多少年
+          to = parseInt((row.np)/12)
         }
+        var m = row.np-(to*12);//计算 年份后得到剩余的月份
+        if(parseInt(Month)+m>12){
+          to=to+1;
+          m=parseInt(Month)+m-12
+        }
+        // console.log(((parseInt(Month)+m)/2 ))
+        to=parseInt(Year)+ parseInt(to)
+
+
         return (
           Year +
           "." +
@@ -153,7 +155,7 @@ export default {
           "." +
           "1" +
           "-" +
-          Year +
+         to +
           "." +
           parseInt(m).toString() +
           "." +
