@@ -147,11 +147,11 @@ export default {
         // console.log(((parseInt(Month)+m)/2 ))
         to=parseInt(Year)+ parseInt(to)
 
-
+        Month=parseInt(Month)+1
         return (
           Year +
           "." +
-          parseInt(Month - 1).toString() +
+          parseInt(Month).toString() +
           "." +
           "1" +
           "-" +
