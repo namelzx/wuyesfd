@@ -27,7 +27,7 @@
           filterable
           @change="handleNmuber"
         >
-          <el-option v-for="(item,index) in unit" :key="item.id" :label="item.unit" :value="index"/>
+          <el-option v-for="(item,index) in unit" :key="item.id" :label="item.unit" :value="index" />
         </el-select>
         <el-select
           clearable
@@ -145,7 +145,15 @@
           <el-form label-position="right" inline class="demo-table-expand">
             <el-table ref="filterTable" :data=" props.row.mett" style="width: 100%">
               <el-table-column prop="name" label="收费项名称" width="180"></el-table-column>
-              <el-table-column prop="to_paid" label="金额" width="180"></el-table-column>
+              <el-table-column label="金额" width="180">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.formula_id===19">
+                    <!-- {{scope.row.to_paid}}* -->
+                    {{scope.row.paid}}
+                  </span>
+                  <span v-else>{{scope.row.to_paid}}</span>
+                </template>
+              </el-table-column>
             </el-table>
           </el-form>
         </template>
@@ -194,7 +202,9 @@
       </el-table-column>
       <el-table-column label="交易时间" min-width="180px" align="center">
         <template slot-scope="scope">
-          <span v-if="scope.row.create_time">{{ scope.row.create_time| parseTime('{y}-{m}-{d} {h}:{i}')}}</span>
+          <span
+            v-if="scope.row.create_time"
+          >{{ scope.row.create_time| parseTime('{y}-{m}-{d} {h}:{i}')}}</span>
         </template>
       </el-table-column>
 
@@ -296,8 +306,7 @@ export default {
         {
           text: "预缴费",
           value: 4
-        },
-        
+        }
       ],
       channelMap: [
         {
@@ -370,7 +379,30 @@ export default {
   },
   created() {
     this.ulistQuery.community_id = this.communit.communit_id;
+    const type = this.$route.params && this.$route.params.type;
+    console.log(type);
 
+    switch (type) {
+      case "转账":
+        this.listQuery.type = 1;
+        break;
+      case "刷卡":
+        this.listQuery.type = 2;
+        break;
+      case "支付宝":
+        this.listQuery.type = 3;
+        break;
+      case "微信":
+        this.listQuery.type = 4;
+        break;
+      case "现金":
+        this.listQuery.type = 5;
+        break;
+      case "小程序缴费":
+        this.listQuery.type = 6;
+        break;
+          default: 
+    }
     // this.$notify({
     //   title: "通知",
     //   message: "有人缴费了",
@@ -398,11 +430,11 @@ export default {
         .then(() => {
           getOrderByWithdraw(id).then(res => {
             console.log(id);
-            row.status="撤回"
-               this.$message({
-            type: 'success',
-            message: '撤回成功!'
-          });
+            row.status = "撤回";
+            this.$message({
+              type: "success",
+              message: "撤回成功!"
+            });
           });
         })
         .catch(() => {
@@ -466,7 +498,7 @@ export default {
 
       var temp = {
         type: "building",
-          community_id:this.communit.communit_id
+        community_id: this.communit.communit_id
       };
       getHousingitem(temp).then(res => {
         this.housing = res.data.data;

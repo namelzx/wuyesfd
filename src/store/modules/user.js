@@ -1,6 +1,9 @@
 import { loginByUsername, logout, getUserInfo } from '@/api/login'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 
+import { Message } from 'element-ui'
+
+
 const user = {
   state: {
     user: '',
@@ -52,6 +55,15 @@ const user = {
       const username = userInfo.username.trim()
       return new Promise((resolve, reject) => {
         loginByUsername(username, userInfo.password).then(response => {
+          if(response.data.status===500){
+
+                Message({
+        message:response.data.msg,
+        type: 'error',
+        duration: 5 * 1000
+      })
+            return
+          }
           const data = response.data
           commit('SET_TOKEN', data.token)
           setToken(response.data.token)
@@ -81,8 +93,9 @@ const user = {
             reject('getInfo: roles must be a non-null array!')
           }
           // console.log(data.data.info.data.user)
+
           commit('SET_COMMUNIT', data.data.info.data.user)
-          commit('SET_NAME', data.name)
+          commit('SET_NAME', data.data.info.data.user.realname)
           commit('SET_AVATAR', 'http://img4.imgtn.bdimg.com/it/u=556450843,472163061&fm=26&gp=0.jpg')
           commit('SET_INTRODUCTION', data.introduction)
           resolve(response)

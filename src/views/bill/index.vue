@@ -157,7 +157,7 @@ import {
   getByList,
   getByListt,
   getLIDataByDelete,
-  postDataByUpdate,
+  // postDataByUpdate,
   getHousingitem
 } from "@/api/meter";
 import UploadExcelComponent from "@/components/UploadExcel/index.vue";
@@ -503,17 +503,17 @@ export default {
         });
       });
     },
-    handleDelete(row) {
-      getLIDataByDelete(row.id).then(res => {});
-      this.$notify({
-        title: "成功",
-        message: "删除成功",
-        type: "success",
-        duration: 2000
-      });
-      const index = this.list.indexOf(row);
-      this.list.splice(index, 1);
-    }
+    // handleDelete(row) {
+    //   getLIDataByDelete(row.id).then(res => {});
+    //   this.$notify({
+    //     title: "成功",
+    //     message: "删除成功",
+    //     type: "success",
+    //     duration: 2000
+    //   });
+    //   const index = this.list.indexOf(row);
+    //   this.list.splice(index, 1);
+    // }
   }
 };
 </script>

@@ -46,7 +46,7 @@ export const constantRouterMap = [
         path: 'dashboard',
         component: () => import('@/views/dashboard/index'),
         name: 'Dashboard',
-        meta: { title: 'dashboard', icon: 'dashboard', noCache: true }
+        meta: { title: '首页', icon: 'dashboard', noCache: true }
       }
     ]
   }
@@ -104,6 +104,14 @@ export const asyncRouterMap = [
         path: 'index',
         component: () => import('@/views/record/index'),
         name: 'record',
+        meta: { title: '收费记录' }
+      },
+
+      {
+        path: 'index/:type',
+        component: () => import('@/views/record/index'),
+        name: 'record',
+        hidden: true,
         meta: { title: '收费记录' }
       },
        {

@@ -32,15 +32,20 @@
         <div>本次读数</div>
       </div>
       <div class="header-conetn" v-for="(item,index) in list" :key="index">
-        <div style="width: 128%">
-          {{ item.name}}</div>
+        <div style="width: 128%">{{ item.name}}</div>
 
         <div style="width:128%">
           <template v-if="item.category_id===30">{{item.desc}}</template>
           <template v-else>{{item|timeSubstring}}</template>
         </div>
         <div style="width:80%">{{ item.unit_price |subunitfile}}</div>
-        <div style="width:80%">{{ item.dosage |subunitfile}}</div>
+        <div style="width:80%">
+          {{ item.dosage |subunitfile}}
+          <span v-if="item.temporary===2">
+            <span>*</span>
+            <span v-if="item.formula_id===19">{{headinfo.construction_area}}</span>
+          </span>
+        </div>
         <div style="width:80%">{{ item.paid }}</div>
         <div>
           <span v-if="item.last_number>0">{{ item.last_number |lastfile}}</span>
@@ -54,8 +59,8 @@
       <div class="bottom-content">
         <div class="content-info">
           <!-- <div>收费渠道: {{pricetype|fsfileer}}</div> -->
-          <div>收费渠道:服务中心收取</div>
-          <div>支付方式:{{pricetype|fsfileer}}</div>
+          <div style="width:29%">收费渠道:服务中心收取</div>
+          <div style="width:29%">支付方式:{{pricetype|fsfileer}}({{pricetype|payType}})</div>
           <div style="width:40%">合计金额(大写):{{sum|Arabia_To_SimplifiedChinese}}</div>
           <div>应收¥:{{sum|numFixed}}</div>
           <div>实收¥:{{shsum|numFixed}}</div>
@@ -132,22 +137,47 @@ export default {
       return (str * 1000) / 1000;
     },
     timeSubstring(row) {
+
+      if (row.formula_id === 46) {
+        return;
+      }
       var Year = row.month.substring(0, 4);
       var Month = row.month.substring(5, 7);
-      var to=0;
+      var to = 0;
+      //预缴费
       if (row.type === 2) {
-        if (row.np>12) {//得到多少年
-          to = parseInt((row.np)/12)
-        }
-        var m = row.np-(to*12);//计算 年份后得到剩余的月份
-        if(parseInt(Month)+m>12){
-          to=to+1;
-          m=parseInt(Month)+m-12
+        if (row.np > 12) {
+          //如果超过12个月 那么就计算 有多少年
+          //得到多少年
+          to = parseInt(row.np / 12);
+        } 
+        //  m = m +1;
+        var m = row.np - to * 12; //计算 年份后得到剩余的月份
+
+      
+        // m=Month+m
+        // m=parseInt(Month)+m
+        if (parseInt(Month) + m > 12) {
+          to = to + 1;
+          m = parseInt(Month) + m - 12;
+        }else{
+          m=m+1
         }
         // console.log(((parseInt(Month)+m)/2 ))
-        to=parseInt(Year)+ parseInt(to)
+        to = parseInt(Year) + parseInt(to);
+        Month = parseInt(Month) + 1;
+        //主要作用判断当前缴费日是否超过今年。主要作用在年底12月使用
+        if (parseInt(Month) > 12) {
+          Year = parseInt(Year) + 1;
+          Month = Month - 12;
+        }
 
-        Month=parseInt(Month)+1
+        if (m === 0) {
+          m = 12;
+        }
+        var firstDay = new Date(to, m - 1, 1); //这个月的第一天
+        var currentMonth = firstDay.getMonth(); //取得月份数
+        var lastDay = new Date(firstDay.getFullYear(), currentMonth + 1, 0); //是0而不是-1
         return (
           Year +
           "." +
@@ -155,37 +185,56 @@ export default {
           "." +
           "1" +
           "-" +
-         to +
+          to +
           "." +
           parseInt(m).toString() +
           "." +
-          "31"
+          lastDay.getDate()
         );
       }
+
       if (
         row.category_id != 28 &&
         row.category_id != 27 &&
         row.items_id != 12 &&
         row.items_id != 7
       ) {
+        var cost = row.get_order_meter.meter_time;
+
+        Month = parseInt(cost.substring(0, 2));
+        if (Month === 0) {
+          Month = 12;
+        }
+        Year = 20 + "" + cost.substring(cost.length - 2);
         return (
           Year + "." + Month + "." + "1" + "-" + Year + "." + Month + "." + "31"
         );
       }
       if ((row.category_id = 28)) {
+        var cost = row.get_order_meter.meter_time;
+
+        Month = parseInt(cost.substring(0, 2)) - 1;
+        Year = 20 + "" + cost.substring(cost.length - 2);
+        if (Month === 0) {
+          Month = 12;
+          Year = Year - 1;
+        }
+
+       
         return (
           Year +
           "." +
-          parseInt(Month - 1).toString() +
+          parseInt(Month).toString() +
           "." +
           "1" +
           "-" +
           Year +
           "." +
-          parseInt(Month - 1).toString() +
+          parseInt(Month).toString() +
           "." +
           "31"
         );
+
         return (
           Year + "." + +"." + "1" + "-" + Year + "." + Month - 1 + "." + "31"
         );
@@ -205,8 +254,19 @@ export default {
       }
       return str;
     },
+    payType(type) {
+      const typeMap = {
+        1: "转账",
+        2: "刷卡",
+        3: "支付宝",
+        4: "微信",
+        5: "现金",
+        6: "小程序缴费"
+      };
+      return typeMap[type];
+    },
     fsfileer(str) {
-      if (str === "现金") {
+      if (str === "") {
         return "服务中心收取";
       } else {
         return "网上渠道";

@@ -81,7 +81,6 @@
       </div>
       <div class="list" v-for="(item,index) in list" :key="index">
         <div class="list-head">账单月份{{item.meter_time}}</div>
-
         <div class="conent-list" v-for="(sitem,sindex) in item.get_bill" :key="sindex">
           <div>
             <el-checkbox v-model="sitem.che" @change="toche(index,sindex)"></el-checkbox>
@@ -122,8 +121,8 @@
             </el-form>
 
             <el-form label-width="80px">
-              <el-form-item label="收费金额">
-                <el-input-number v-model="item.num" :min="1" :max="12" @change="handelchange(item)"></el-input-number>
+              <el-form-item label="收费月数">
+                <el-input-number v-model="item.num" :min="1" :max="999" @change="handelchange(item)"></el-input-number>
               </el-form-item>
             </el-form>
             <el-form label-width="80px">
@@ -131,7 +130,11 @@
                 <span
                   v-if="item.formula_id==19"
                 >{{item.price*item.num*userinfo.construction_area|subunitfile}}</span>
-                <span v-if="item.formula_id==17">{{item.price*item.num|subunitfile}}</span>
+                <span v-if="item.formula_id==17"> 
+                  <span v-if="item.num">
+                      {{item.price*item.num|subunitfile}}
+                  </span>
+                </span>
                 <span
                   v-if="item.formula_id==36"
                 >{{item.price*userinfo.get_owner.automobile*item.num|subunitfile}}</span>
@@ -182,11 +185,6 @@
               </el-form-item>
             </el-form>
 
-            <!-- <el-form label-width="80px">
-              <el-form-item label="到期日期">
-                <span>{{item.num|AddMouth}}</span>
-              </el-form-item>
-            </el-form> -->
           </el-card>
         </div>
       </el-card>
@@ -226,7 +224,7 @@
       </div>
       <span slot="footer" class="dialog-footer" v-show="hideposit">
         <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="handelPostOrder">确 定</el-button>
+        <el-button type="primary" :disabled="!is_Post" @click="handelPostOrder">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -246,8 +244,12 @@ import { mapGetters } from "vuex";
 
 export default {
   name: "ComplexTable",
+ 
+  computed: {
+    ...mapGetters(["communit"])
+  },
   filters: {
-    numFilter(value) {
+     numFilter(value) {
       // 截取当前数据到小数点后两位
       let realVal = parseFloat(value).toFixed(2); // num.toFixed(2)获取的是字符串
       return parseFloat(realVal);
@@ -278,12 +280,7 @@ export default {
         sum += parseFloat(row[i].to_paid - row[i].paid);
       }
       return sum.toFixed(2);
-    }
-  },
-  computed: {
-    ...mapGetters(["communit"])
-  },
-  filters: {
+    },
     AddMouth(num) {
       if (num === undefined) {
         return "请先增加时间";
@@ -315,7 +312,13 @@ export default {
     },
 
     subunitfile(str) {
+      if(str===NaN){
+        console.log(111)
+        return 0;
+      }else{
       return parseFloat(str).toFixed(2);
+
+      }
     },
     sumfile(str) {
       if (str < 1) {
@@ -325,6 +328,7 @@ export default {
   },
   data() {
     return {
+      is_Post:true,
       hideposit: true,
       housing_id: 0,
       radio: [],
@@ -338,7 +342,7 @@ export default {
       },
       temp: {
         price: 0, //缴费金额
-        type: 1, //缴费方式
+        type: 0, //缴费方式
         bill_no: "", //订单号
         housing_id: 0, //房号
         admin_id: 0 //操作人
@@ -397,9 +401,14 @@ export default {
       }
     },
     handelchange(row) {
+      console.log(row)
       row.paid = row.price * row.num;
       if (row.formula_id === 19) {
         row.paid = row.paid * this.userinfo.construction_area;
+      }
+
+        if (row.formula_id === 39) {
+        row.paid = row.paid * this.userinfo.get_owner.battery;
       }
       if (row.formula_id === 36) {
         if(this.userinfo.get_owner.automobile<1){
@@ -434,10 +443,6 @@ export default {
               yjlist[i].price *
               this.userinfo.get_owner.automobile;
         }
-      
-
-        console.log(  )
-
         if (yjlist[i].formula_id === 39) {
           sum =
             sum +
@@ -445,7 +450,6 @@ export default {
               parseFloat( yjlist[i].price) *
               this.userinfo.get_owner.battery;
         }
-
         if (yjlist[i].formula_id === 40) {
 
          if(yjlist[i].id===14){
@@ -472,6 +476,15 @@ export default {
     },
     // 提交订单
     handelPostOrder() {
+      this.is_Post=false
+      if(this.temp.type===0){
+         this.is_Post=true;
+        this.$notify.error({
+          title: '错误',
+          message: '请选择支付方式'
+        });
+        return;
+      }
       var order = [];
       var che = [];
       for (let i = 0; i < this.list.length; i++) {
@@ -494,6 +507,8 @@ export default {
           cancelButtonText: "取消",
           type: "warning"
         }).then(() => {
+        this.is_Post=true;
+
           this.$router.push({ path: "/record/toview/" + res.data.data });
         });
       });
