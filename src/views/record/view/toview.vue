@@ -131,13 +131,13 @@ export default {
         1: "success",
         2: "danger"
       };
-      return statusMap[status];
+      // return statusMap[status];
     },
     subunitfile(str) {
       return (str * 1000) / 1000;
     },
     timeSubstring(row) {
-
+  
       if (row.formula_id === 46) {
         return;
       }
@@ -153,7 +153,7 @@ export default {
         } 
         //  m = m +1;
         var m = row.np - to * 12; //计算 年份后得到剩余的月份
-
+  
       
         // m=Month+m
         // m=parseInt(Month)+m
@@ -161,7 +161,7 @@ export default {
           to = to + 1;
           m = parseInt(Month) + m - 12;
         }else{
-          m=m+1
+          m=m+ parseInt(Month)
         }
         // console.log(((parseInt(Month)+m)/2 ))
         to = parseInt(Year) + parseInt(to);
@@ -175,6 +175,7 @@ export default {
         if (m === 0) {
           m = 12;
         }
+      
         var firstDay = new Date(to, m - 1, 1); //这个月的第一天
         var currentMonth = firstDay.getMonth(); //取得月份数
         var lastDay = new Date(firstDay.getFullYear(), currentMonth + 1, 0); //是0而不是-1
@@ -206,7 +207,9 @@ export default {
           Month = 12;
         }
         Year = 20 + "" + cost.substring(cost.length - 2);
-        return (
+   
+   
+     return (
           Year + "." + Month + "." + "1" + "-" + Year + "." + Month + "." + "31"
         );
       }
@@ -219,6 +222,7 @@ export default {
           Month = 12;
           Year = Year - 1;
         }
+var day = new Date(Year,Month,0);
 
        
         return (
@@ -232,7 +236,7 @@ export default {
           "." +
           parseInt(Month).toString() +
           "." +
-          "31"
+        day.getDate()
         );
 
         return (
